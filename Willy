@@ -1,0 +1,121 @@
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local player = Players.LocalPlayer
+local Morphs = ReplicatedStorage:WaitForChild("Morphs")
+
+local gui = Instance.new("ScreenGui")
+gui.Name = "AutoEXP_GUI"
+gui.ResetOnSpawn = false
+gui.Parent = player:WaitForChild("PlayerGui")
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 210, 0, 125)
+frame.Position = UDim2.new(0, 20, 0.5, -60)
+frame.BackgroundColor3 = Color3.fromRGB(255, 105, 160)
+frame.Parent = gui
+
+Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 14)
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, 0, 0, 30)
+title.BackgroundTransparency = 1
+title.Text = "🍊 AUTO MORPH + EXP"
+title.TextColor3 = Color3.fromRGB(255, 230, 240)
+title.TextScaled = true
+title.Font = Enum.Font.GothamBold
+title.Parent = frame
+
+local expButton = Instance.new("TextButton")
+expButton.Size = UDim2.new(0, 180, 0, 32)
+expButton.Position = UDim2.new(0.5, -90, 0, 38)
+expButton.BackgroundColor3 = Color3.fromRGB(255, 145, 70)
+expButton.Text = "AUTO EXP: OFF"
+expButton.TextColor3 = Color3.new(1, 1, 1)
+expButton.TextScaled = true
+expButton.Font = Enum.Font.GothamBold
+expButton.Parent = frame
+
+Instance.new("UICorner", expButton).CornerRadius = UDim.new(0, 10)
+
+local morphButton = Instance.new("TextButton")
+morphButton.Size = UDim2.new(0, 180, 0, 32)
+morphButton.Position = UDim2.new(0.5, -90, 0, 80)
+morphButton.BackgroundColor3 = Color3.fromRGB(255, 145, 70)
+morphButton.Text = "AUTO MORPH: OFF"
+morphButton.TextColor3 = Color3.new(1, 1, 1)
+morphButton.TextScaled = true
+morphButton.Font = Enum.Font.GothamBold
+morphButton.Parent = frame
+
+Instance.new("UICorner", morphButton).CornerRadius = UDim.new(0, 10)
+
+local expEnabled = false
+local morphEnabled = false
+
+expButton.MouseButton1Click:Connect(function()
+    expEnabled = not expEnabled
+    expButton.Text = "AUTO EXP: " .. (expEnabled and "ON" or "OFF")
+end)
+
+morphButton.MouseButton1Click:Connect(function()
+    morphEnabled = not morphEnabled
+    morphButton.Text = "AUTO MORPH: " .. (morphEnabled and "ON" or "OFF")
+end)
+
+local function getRoot()
+    local char = player.Character or player.CharacterAdded:Wait()
+    return char:WaitForChild("HumanoidRootPart")
+end
+
+local function isRed(part)
+    local c = part.Color
+    return c.R > 0.7 and c.G < 0.35 and c.B < 0.35
+end
+
+task.spawn(function()
+    while task.wait(0.2) do
+        if expEnabled then
+            local root = getRoot()
+            local nearest
+            local distance = math.huge
+
+            for _, obj in ipairs(workspace:GetDescendants()) do
+                if obj:IsA("BasePart") and isRed(obj) then
+                    local d = (root.Position - obj.Position).Magnitude
+
+                    if d < distance then
+                        nearest = obj
+                        distance = d
+                    end
+                end
+            end
+
+            if nearest then
+                local humanoid = root.Parent:FindFirstChildOfClass("Humanoid")
+
+                if humanoid then
+                    humanoid:MoveTo(nearest.Position)
+                end
+            end
+        end
+    end
+end)
+
+player.CharacterAdded:Connect(function()
+    if not morphEnabled then
+        return
+    end
+
+    task.wait(1)
+
+    local list = Morphs:GetChildren()
+
+    if #list > 0 then
+        local morph = list[math.random(1, #list)]
+
+        -- Đặt code morph của game bạn vào đây.
+        -- Ví dụ: gọi RemoteEvent hoặc hệ thống morph riêng của game.
+        print("Morph được chọn:", morph.Name)
+    end
+end)
